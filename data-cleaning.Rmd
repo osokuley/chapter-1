@@ -1,0 +1,51 @@
+---
+title: "Literature review data cleaning"
+output: html_notebook
+---
+
+
+```{r}
+library(dplyr)
+```
+
+```{r}
+data_raw <- read.csv("2026_chapter1_rawdata.csv")
+
+View(data_raw)
+
+metric_cols <- c("accuracy", "precision", "recall", "map", "f1")
+
+performance_means <- sapply(data_raw[metric_cols], mean, na.rm = TRUE)
+
+performance_maxs <- c(
+  accuracy = 100,
+  precision = 1,
+  recall = 1,
+  map = 1,
+  f1 = 1
+)
+```
+
+```{r}
+data_std <- data_raw %>%
+  mutate(
+    across(
+      all_of(metric_cols),
+      ~ (.x - performance_means[cur_column()]) / (performance_maxs[cur_column()] - performance_means[cur_column()]),
+      .names = "{.col}_std"
+    )
+  )
+
+data_mean_std <- data_std %>%
+  rowwise() %>%
+  mutate(
+    PAA = mean(c_across(ends_with("_std")), na.rm = TRUE)
+  ) %>%
+  ungroup()
+
+data_paa <- data_mean_std %>%
+  select(-all_of(metric_cols), -ends_with("_std"))
+
+saveRDS(data_paa, "data_paa.rds")
+```
+
