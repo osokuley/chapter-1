@@ -12,6 +12,7 @@ library(ggplot2)
 data_paa <- readRDS("data_paa.rds")
 
 data_paa_arc <- data_paa %>% 
+  select(architecture, PAA) %>% 
   mutate(architecture = as.factor(architecture)) %>% 
   filter(!is.na(architecture), 
          !is.na(PAA)) %>% 
@@ -29,7 +30,7 @@ summary(paa_anova)
 
 paa_summary <- data_paa_arc %>%
   group_by(architecture) %>%
-  summarise(n = sum(!is.na(PAA)),
+  summarise(n = sum(),
             mean_PAA = mean(PAA, 
                             na.rm = TRUE),
             sd_PAA = sd(PAA, 
@@ -44,7 +45,7 @@ ggplot(data_paa_arc,
            y = PAA,
            fill = architecture)) +
   geom_boxplot(width = 0.7,
-               outlier.shape = NA,
+               outlier.shape = 19,
                linewidth = 0.5) +
   labs(x = "Model family / framework",
        y = "Performance Adjusted Average (PAA)") +
