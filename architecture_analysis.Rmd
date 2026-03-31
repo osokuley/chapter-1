@@ -1,0 +1,63 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+data_paa <- readRDS("data_paa.rds")
+
+data_paa_arc <- data_paa %>% 
+  mutate(architecture = as.factor(architecture)) %>% 
+  filter(!is.na(architecture), 
+         !is.na(PAA)) %>% 
+  mutate(architecture = reorder(architecture, 
+                                -PAA, 
+                                FUN = mean, 
+                                na.rm = TRUE))
+```
+
+```{r}
+paa_anova <- aov(PAA ~ architecture,
+                 data = data_paa_arc)
+
+summary(paa_anova)
+
+paa_summary <- data_paa_arc %>%
+  group_by(architecture) %>%
+  summarise(n = sum(!is.na(PAA)),
+            mean_PAA = mean(PAA, 
+                            na.rm = TRUE),
+            sd_PAA = sd(PAA, 
+                        na.rm = TRUE))
+
+paa_summary
+```
+
+```{r}
+ggplot(data_paa_arc,
+       aes(x = architecture,
+           y = PAA,
+           fill = architecture)) +
+  geom_boxplot(width = 0.7,
+               outlier.shape = NA,
+               linewidth = 0.5) +
+  labs(x = "Model family / framework",
+       y = "Performance Adjusted Average (PAA)") +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 45,
+                                   hjust = 1,
+                                   vjust = 1,
+                                   size = 9),
+        axis.text.y = element_text(size = 9),
+        axis.title.x = element_text(size = 12,
+                                    margin = margin(t = 12)),
+        axis.title.y = element_text(size = 12,
+                                    margin = margin(r = 12)))
+```
+
