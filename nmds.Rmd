@@ -1,0 +1,40 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(dplyr)
+library(vegan)
+library(ggplot2)
+
+data_paa <- readRDS("data_paa.rds")
+
+data_nmds <- data_paa %>%
+  select(PAA, epochs, learning_rate, num_img, num_class) %>%
+  na.omit()
+
+matrix_nmds <- data_nmds %>%
+  select(epochs, learning_rate, num_img, num_class)
+
+matrix_nmds_scaled <- scale(matrix_nmds)
+
+nmds_result <- metaMDS(matrix_nmds_scaled, distance = "euclidean", k = 2, trymax = 100)
+
+nmds_result$stress
+
+nmds_scores <- as.data.frame(scores(nmds_result))
+
+nmds_scores$PAA <- data_nmds$PAA
+
+ggplot(nmds_scores, aes(x = NMDS1, y = NMDS2, color = PAA)) +
+  geom_point(size = 3, alpha = 0.8) +
+  theme_classic() +
+  labs(
+    x = "NMDS1",
+    y = "NMDS2",
+    color = "PAA"
+  )
+
+
+```
