@@ -1,0 +1,47 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(lme4)
+library(MuMIn)
+
+data_paa <- readRDS("data_paa.rds")
+```
+
+```{r}
+paa_param <- c("augmentation",
+               "architecture", 
+               "epochs", 
+               "learning_rate", 
+               "Classification.level",
+               "num_class", 
+               "num_img", 
+               "curation", 
+               "PAA")
+
+data_paa_param <- data_paa %>% 
+  mutate(architecture = as.factor(architecture),
+         curation = as.factor(curation)) %>% 
+  filter(if_all(all_of(paa_param), 
+                ~ !is.na(.))) %>% 
+  select(-id, 
+         -author, 
+         -journal, 
+         -year, 
+         -citations)
+
+model1 <- lm(PAA ~ num_img + num_class + curation + epochs + learning_rate + augmentation, 
+               data = data_paa_param)
+
+summary(model1)
+
+options(na.action = "na.fail")
+dredge(model1)
+
+```
+
