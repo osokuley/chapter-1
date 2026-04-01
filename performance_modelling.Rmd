@@ -78,33 +78,45 @@ m3_dredge #0 delta AIC shows the same factors as m2
 
 #comparison information statistics between m1 m2 and m3
 AICc(m1, m2, m3, k = 2)
+
+m1a <- model.avg(m1_dredge, subset = delta < 6)
+m3a <- model.avg(m3_dredge, subset = delta < 6)
+
 ```
 
 ```{r}
-plot_data <- data_paa_param %>%
+data_plot1 <- data_paa_param %>%
   mutate(
-    fitted = fitted(m2),
-    resid  = resid(m2)
-  )
+    predicted = predict(m2),
+    observed  = PAA)
 
-ggplot(plot_data, aes(x = fitted, y = PAA)) +
-  geom_point(size = 2, alpha = 0.7) +
-  geom_smooth(method = "lm", se = TRUE) +
-  labs(
-    x = "Fitted PAA",
-    y = "Observed PAA",
-    title = "Observed vs Fitted Values"
-  ) +
+ggplot(data_plot1, 
+       aes(x = observed, 
+           y = predicted)) +
+  geom_point(size = 2, 
+             alpha = 0.7) +
+  geom_abline(slope = 1, 
+              intercept = 0, 
+              linetype = "solid") +
+  labs(x = "Observed PAA",
+       y = "Predicted PAA",
+       title = "Predicted vs Observed Values for m2") +
   theme_classic()
 
-ggplot(plot_data, aes(x = fitted, y = resid)) +
-  geom_point(size = 2, alpha = 0.7) +
-  geom_hline(yintercept = 0, linetype = "dashed") +
-  labs(
-    x = "Fitted PAA",
-    y = "Residuals",
-    title = "Residuals vs Fitted Values"
-  ) +
+data_plot2 <- data_paa_param %>%
+  mutate(fitted = fitted(m2),
+         resid  = resid(m2))
+
+ggplot(data_plot2, 
+       aes(x = fitted, 
+           y = resid)) +
+  geom_point(size = 2, 
+             alpha = 0.7) +
+  geom_hline(yintercept = 0, 
+             linetype = "dashed") +
+  labs(x = "Fitted values",
+       y = "Residuals",
+       title = "Residuals vs Fitted for m2") +
   theme_classic()
 ```
 

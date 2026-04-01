@@ -3,12 +3,10 @@ title: "Literature review data cleaning"
 output: html_notebook
 ---
 
-
 ```{r}
 library(dplyr)
-```
 
-```{r}
+
 data_raw <- read.csv("2026_chapter1_rawdata.csv")
 
 View(data_raw)
