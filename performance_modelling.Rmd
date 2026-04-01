@@ -53,25 +53,30 @@ data_paa_param <- data_paa %>%
 #ensures model is not fit unless data is complete (i.e. checks work of above)
 options(na.action = "na.fail")
 
-#fit model 1, all parameters
+#fit m1, all parameters
 m1 <- lmer(PAA ~ scale(num_img) + scale(num_class) + scale(epochs) + scale(learning_rate) + curation + augmentation + Classification.level + (1 | architecture) + (1 | id), 
            data = data_paa_param)
 summary(m1)
 
+#dredging m1
 m1_dredge <- dredge(m1)
 m1_dredge
 
+#fit m2 based on dredge results
 m2 <- lmer(PAA ~  curation + scale(num_img) + (1 | architecture) + (1 | id), 
            data = data_paa_param)
 summary(m2)
 
+#fit m3 with interaction between scaled image number and augmentation
 m3 <- lmer(PAA ~ scale(num_img) * augmentation + scale(num_class) + scale(epochs) * scale(learning_rate) + curation + Classification.level + (1 | architecture) + (1 | id),
                data = data_paa_param)
 summary(m3)
 
+#dredging m3
 m3_dredge <- dredge(m3)
 m3_dredge #0 delta AIC shows the same factors as m2
 
+#comparison information statistics between m1 m2 and m3
 AICc(m1, m2, m3, k = 2)
 ```
 
