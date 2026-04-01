@@ -11,10 +11,12 @@ library(lme4)
 library(MuMIn)
 library(broom)
 
+#read data with summarized performance above average
 data_paa <- readRDS("data_paa.rds")
 ```
 
 ```{r}
+#select included data parameters
 paa_param <- c("augmentation",
                "architecture", 
                "epochs", 
@@ -25,12 +27,17 @@ paa_param <- c("augmentation",
                "curation", 
                "PAA",
                "id")
+
+#select included numerical data parameters
 paa_param_num <- c("epochs", 
                    "learning_rate", 
                    "num_class", 
                    "num_img", 
                    "PAA")
 
+#convert categorical values to factors
+#filter for only rows with all parameter values filled
+#remove unnecessary columns
 data_paa_param <- data_paa %>% 
   mutate(architecture = as.factor(architecture),
          curation = as.factor(curation)) %>% 
@@ -40,27 +47,47 @@ data_paa_param <- data_paa %>%
          -journal, 
          -year, 
          -citations)
+```
 
-model1 <- lmer(PAA ~ scale(num_img) + scale(num_class) + scale(epochs) + scale(learning_rate) + curation + augmentation + (1 | id), 
-               data = data_paa_param)
-summary(model1)
-
+```{r}
+#ensures model is not fit unless data is complete (i.e. checks work of above)
 options(na.action = "na.fail")
 
-model1_dredge <- dredge(model1)
-model1_avg <- model.avg(model1_dredge, subset = delta < 6)
-summary(model_avg)
-
-model2 <- lmer(PAA ~ scale(num_img) * augmentation + scale(num_class) + scale(epochs) + scale(learning_rate) + curation + augmentation + (1 | id),
+m1 <- lmer(PAA ~ scale(num_img) + scale(num_class) + scale(epochs) + scale(learning_rate) + curation + augmentation + (1 | id), 
                data = data_paa_param)
-summary(model2)
+summary(m1)
 
-model2_dredge <- dredge(model2)
-model2_avg <- model.avg(model2_dredge, subset = delta < 6)
-summary(model2_avg)
+m1_dredge <- dredge(m1)
+m1_dredge
 
-AICc(model1, model2)
+m2 <- lmer(PAA ~ augmentation + curation + scale(num_img) + (1 | id), data = data_paa_param)
+summary(m2)
+
+m3 <- model.avg(m1_dredge, subset = delta < 6)
+summary(m1_avg)
+
+m4<- lmer(PAA ~ scale(num_img) * augmentation + scale(num_class) + scale(epochs) * scale(learning_rate) + curation + (1 | id),
+               data = data_paa_param)
+summary(m4)
+
+m4_dredge <- dredge(m4)
+m4_dredge #0 delta AIC shows no additional influence of interactions
+
+m5 <- model.avg(m4_dredge, subset = delta < 6)
+summary(m5)
+
+AICc(m1, m2, m4, k = 2)
 ```
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
 
 ```{r}
 plot_data <- data_paa_param %>%
