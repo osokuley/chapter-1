@@ -79,18 +79,35 @@ m3_dredge #0 delta AIC shows the same factors as m2
 #comparison information statistics between m1 m2 and m3
 AICc(m1, m2, m3, k = 2)
 
-m1a <- model.avg(m1_dredge, subset = delta < 6)
+m1a <- model.avg(m1_dredge, subset = delta < 6, fit = TRUE)
 m3a <- model.avg(m3_dredge, subset = delta < 6)
 
 ```
 
 ```{r}
-data_plot1 <- data_paa_param %>%
+data_plot_m2 <- data_paa_param %>%
   mutate(
     predicted = predict(m2),
     observed  = PAA)
 
-ggplot(data_plot1, 
+ggplot(data_plot_m2, 
+       aes(x = observed, 
+           y = predicted)) +
+  geom_point(size = 2, 
+             alpha = 0.7) +
+  geom_abline(slope = 1, 
+              intercept = 0, 
+              linetype = "solid") +
+  labs(x = "Observed PAA",
+       y = "Predicted PAA",
+       title = "Predicted vs Observed Values for m2") +
+  theme_classic()
+
+data_plot_m1a <- data_paa_param %>% 
+  mutate(predicted = predict(m1a),
+         observed = PAA)
+
+ggplot(data_plot_m1a, 
        aes(x = observed, 
            y = predicted)) +
   geom_point(size = 2, 
