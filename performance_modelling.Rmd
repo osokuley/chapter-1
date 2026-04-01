@@ -53,47 +53,33 @@ data_paa_param <- data_paa %>%
 #ensures model is not fit unless data is complete (i.e. checks work of above)
 options(na.action = "na.fail")
 
-m1 <- lmer(PAA ~ scale(num_img) + scale(num_class) + scale(epochs) + scale(learning_rate) + curation + augmentation + (1 | id), 
-               data = data_paa_param)
+#fit model 1, all parameters
+m1 <- lmer(PAA ~ scale(num_img) + scale(num_class) + scale(epochs) + scale(learning_rate) + curation + augmentation + Classification.level + (1 | architecture) + (1 | id), 
+           data = data_paa_param)
 summary(m1)
 
 m1_dredge <- dredge(m1)
 m1_dredge
 
-m2 <- lmer(PAA ~ augmentation + curation + scale(num_img) + (1 | id), data = data_paa_param)
+m2 <- lmer(PAA ~  curation + scale(num_img) + (1 | architecture) + (1 | id), 
+           data = data_paa_param)
 summary(m2)
 
-m3 <- model.avg(m1_dredge, subset = delta < 6)
-summary(m1_avg)
-
-m4<- lmer(PAA ~ scale(num_img) * augmentation + scale(num_class) + scale(epochs) * scale(learning_rate) + curation + (1 | id),
+m3 <- lmer(PAA ~ scale(num_img) * augmentation + scale(num_class) + scale(epochs) * scale(learning_rate) + curation + Classification.level + (1 | architecture) + (1 | id),
                data = data_paa_param)
-summary(m4)
+summary(m3)
 
-m4_dredge <- dredge(m4)
-m4_dredge #0 delta AIC shows no additional influence of interactions
+m3_dredge <- dredge(m3)
+m3_dredge #0 delta AIC shows the same factors as m2
 
-m5 <- model.avg(m4_dredge, subset = delta < 6)
-summary(m5)
-
-AICc(m1, m2, m4, k = 2)
+AICc(m1, m2, m3, k = 2)
 ```
-
-```{r}
-
-```
-
-
-```{r}
-
-```
-
 
 ```{r}
 plot_data <- data_paa_param %>%
   mutate(
-    fitted = fitted(model1),
-    resid  = resid(model1)
+    fitted = fitted(m2),
+    resid  = resid(m2)
   )
 
 ggplot(plot_data, aes(x = fitted, y = PAA)) +
@@ -113,20 +99,6 @@ ggplot(plot_data, aes(x = fitted, y = resid)) +
     x = "Fitted PAA",
     y = "Residuals",
     title = "Residuals vs Fitted Values"
-  ) +
-  theme_classic()
-
-
-tidy(model1, conf.int = TRUE) %>%
-  filter(term != "(Intercept)") %>%
-  ggplot(aes(x = estimate, y = reorder(term, estimate))) +
-  geom_point(size = 3) +
-  geom_errorbarh(aes(xmin = conf.low, xmax = conf.high), height = 0.2) +
-  geom_vline(xintercept = 0, linetype = "dashed") +
-  labs(
-    x = "Estimated effect on PAA",
-    y = NULL,
-    title = "Effects of Training and Dataset Parameters on PAA"
   ) +
   theme_classic()
 ```
