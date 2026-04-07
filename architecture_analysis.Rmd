@@ -46,7 +46,7 @@ ggplot(data_paa_arc,
                outlier.shape = 19,
                linewidth = 0.5) +
   labs(x = "Model family / framework",
-       y = "Performance Adjusted Average (PAA)") +
+       y = "Performance Above Average (PAA)") +
   theme_classic() +
   theme(legend.position = "none",
         axis.text.x = element_text(angle = 45,

@@ -58,26 +58,29 @@ m1 <- lmer(PAA ~ scale(num_img) + scale(num_class) + scale(epochs) + scale(learn
            data = data_paa_param)
 summary(m1)
 
+#augmentation no longer included due to correlation with image number
 data_aug_mean <- data_paa_param %>% 
   group_by(augmentation) %>% 
   summarise(mean_num_img = mean(num_img), na.rm = TRUE)
 
 ggplot(data_aug_mean, 
        aes(x = augmentation,
-           y = mean_num_img))+
-  geom_col()
+           y = mean_num_img,
+           fill = augmentation))+
+  geom_col() +
+  theme_classic()
 
 #dredging m1
 m1_dredge <- dredge(m1)
 m1_dredge
 
-#fit m2 based on dredge results
+#fit m2 based on dredge results + augmentation correlation with num_img
 m2 <- lmer(PAA ~  curation + scale(num_img) + (1 | architecture) + (1 | id), 
            data = data_paa_param)
 summary(m2)
 
-#fit m3 with interaction between scaled image number and augmentation
-m3 <- lmer(PAA ~ scale(num_img) * augmentation + scale(num_class) + scale(epochs) * scale(learning_rate) + curation + Classification.level + (1 | architecture) + (1 | id),
+#fit m3 with interaction between epochs & learning_rate, num_img & num_class
+m3 <- lmer(PAA ~ scale(num_img) * scale(num_class) + scale(epochs) * scale(learning_rate) + curation + Classification.level + (1 | architecture) + (1 | id),
                data = data_paa_param)
 summary(m3)
 
@@ -90,55 +93,24 @@ AICc(m1, m2, m3, k = 2)
 ```
 
 ```{r}
-data_plot_m2 <- data_paa_param %>%
-  mutate(
-    predicted = predict(m2),
-    observed  = PAA)
+fitted <- predict(m2)
+residuals <- resid(m2)
 
-ggplot(data_plot_m2, 
-       aes(x = observed, 
-           y = predicted)) +
-  geom_point(size = 2, 
-             alpha = 0.7) +
-  geom_abline(slope = 1, 
-              intercept = 0, 
-              linetype = "solid") +
-  labs(x = "Observed PAA",
-       y = "Predicted PAA",
-       title = "Predicted vs Observed Values for m2") +
+data_m2_fr <- data.frame(fitted,
+                           residuals)
+
+data_m2_plot <- data_m2_fr %>% 
+  merge(bind_cols(select(data_paa_param, PAA)))
+
+ggplot(data = data_m2_plot,
+       aes(x = fitted,
+           y = residuals
+       )) +
+  geom_point() +
+  geom_line(y = 0) +
   theme_classic()
 
-data_plot_m1a <- data_paa_param %>% 
-  mutate(predicted = predict(m1a),
-         observed = PAA)
-
-ggplot(data_plot_m1a, 
-       aes(x = observed, 
-           y = predicted)) +
-  geom_point(size = 2, 
-             alpha = 0.7) +
-  geom_abline(slope = 1, 
-              intercept = 0, 
-              linetype = "solid") +
-  labs(x = "Observed PAA",
-       y = "Predicted PAA",
-       title = "Predicted vs Observed Values for m2") +
-  theme_classic()
-
-data_plot2 <- data_paa_param %>%
-  mutate(fitted = fitted(m2),
-         resid  = resid(m2))
-
-ggplot(data_plot2, 
-       aes(x = fitted, 
-           y = resid)) +
-  geom_point(size = 2, 
-             alpha = 0.7) +
-  geom_hline(yintercept = 0, 
-             linetype = "dashed") +
-  labs(x = "Fitted values",
-       y = "Residuals",
-       title = "Residuals vs Fitted for m2") +
-  theme_classic()
+qqnorm(residuals)
+hist(residuals)
 ```
 
