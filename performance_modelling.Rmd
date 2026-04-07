@@ -11,6 +11,13 @@ library(lme4)
 library(MuMIn)
 library(broom)
 
+
+library(tidyverse) 
+library(cowplot) 
+library(sjPlot) 
+library(sjmisc) 
+library(sjstats)
+
 #read data with summarized performance above average
 data_paa <- readRDS("data_paa.rds")
 ```
@@ -90,9 +97,16 @@ m3_dredge #0 delta AIC shows the same factors as m2
 
 #comparison information statistics between m1 m2 and m3
 AICc(m1, m2, m3, k = 2)
+
+#averaging models below the delta threshold in m3 to improve fit
+m3_avg <- model.avg(m3_dredge, subset = delta < 6, fit = TRUE)
+
+summary(m3_avg)
 ```
 
 ```{r}
+tab_model(m2)
+
 fitted <- predict(m2)
 residuals <- resid(m2)
 
@@ -112,5 +126,22 @@ ggplot(data = data_m2_plot,
 
 qqnorm(residuals)
 hist(residuals)
+
+plot_m2 <- plot_model(m2,
+                      show.values = TRUE,
+                      show.p = TRUE,
+                      value.offset = 0.4,
+                      title = "Effect of M2 Metrics on Performance")
+plot_m2 +
+  theme_classic()
+
+plot_m3_avg <- plot_model(m3_avg,
+                      show.values = TRUE,
+                      show.p = TRUE,
+                      value.offset = 0.4,
+                      title = "Effect of M3A Metrics on Performance")
+plot_m3_avg +
+  theme_classic()
+
 ```
 
