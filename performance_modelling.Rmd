@@ -18,6 +18,8 @@ library(sjPlot)
 library(sjmisc) 
 library(sjstats)
 
+library(GGally)
+
 #read data with summarized performance above average
 data_paa <- readRDS("data_paa.rds")
 ```
@@ -82,7 +84,7 @@ m1_dredge <- dredge(m1)
 m1_dredge
 
 #fit m2 based on dredge results + augmentation correlation with num_img
-m2 <- lmer(PAA ~  curation + scale(num_img) + (1 | architecture) + (1 | id), 
+m2 <- lmer(PAA ~ curation + scale(num_img) + (1 | architecture) + (1 | id), 
            data = data_paa_param)
 summary(m2)
 
@@ -142,6 +144,11 @@ plot_m3_avg <- plot_model(m3_avg,
                       title = "Effect of M3A Metrics on Performance")
 plot_m3_avg +
   theme_classic()
+
+data_paa_param_pairs <- data_paa_param %>% 
+  select(-architecture)
+  
+ggpairs(data_paa_param_pairs)
 
 ```
 
