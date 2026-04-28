@@ -3,7 +3,6 @@ title: "R Notebook"
 output: html_notebook
 ---
 
-
 ```{r}
 library(dplyr)
 library(ggplot2)
@@ -129,26 +128,28 @@ ggplot(data = data_m2_plot,
 qqnorm(residuals)
 hist(residuals)
 
-plot_m2 <- plot_model(m2,
-                      show.values = TRUE,
-                      show.p = TRUE,
-                      value.offset = 0.4,
-                      title = "Effect of M2 Metrics on Performance")
-plot_m2 +
+data_m2_obs <- data.frame(
+  fitted = predict(m2, data_paa_param),
+  observed = data_paa_param$PAA
+)
+
+data_m3avg_obs <- data.frame(
+  fitted = predict(m3_avg, data_paa_param),  # pass data explicitly for averaged models
+  observed = data_paa_param$PAA
+)
+
+p_m2 <- ggplot(data_m2_obs, aes(x = fitted, y = observed)) +
+  geom_point(color = "steelblue", size = 2, alpha = 0.7) +
+  geom_abline(intercept = 0, slope = 1, 
+              linetype = "solid", linewidth = 1) +
+  labs(title = "M2", x = "Fitted PAA", y = "Observed PAA") +
   theme_classic()
 
-plot_m3_avg <- plot_model(m3_avg,
-                      show.values = TRUE,
-                      show.p = TRUE,
-                      value.offset = 0.4,
-                      title = "Effect of M3A Metrics on Performance")
-plot_m3_avg +
-  theme_classic()
 
-data_paa_param_pairs <- data_paa_param %>% 
-  select(-architecture)
-  
-ggpairs(data_paa_param_pairs)
+plot_model(m2,
+           type = "pred")
 
+plot_model(m2,
+           type = "est")
 ```
 
